@@ -15,6 +15,14 @@
   ],
   "author": "Mukul <mukul1904@gmail.com>",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myke11j/nodexperts-glossary-alexa-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/myke11j/nodexperts-glossary-alexa-skill/issues"
+  },
+  "homepage": "https://github.com/myke11j/nodexperts-glossary-alexa-skill#readme",
   "dependencies": {
     "aws-sdk": "^2.138.0",
     "winston": "^2.4.0",
