@@ -4,8 +4,20 @@
   "description": "Search any JavaScript term from NodeXperts glossary",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm test",
+    "dev:lambda": "node-lambda run",
+    "dev:lambda-deploy": "node-lambda deploy"
   },
+  "keywords": [
+    "alexa",
+    "alexa-skill",
+    "nodexperts"
+  ],
   "author": "Mukul <mukul1904@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.138.0",
+    "winston": "^2.4.0",
+    "winston-papertrail": "^1.0.5"
+  }
 }
