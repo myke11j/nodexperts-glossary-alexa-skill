@@ -1,11 +1,6 @@
 # nodexperts-glossary-alexa-skill
 Search any JavaScript term from NodeXperts glossary
 
-Ask questions like
-
-```
-Todo
-```
 
 ## Set up
 
