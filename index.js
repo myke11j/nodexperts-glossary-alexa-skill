@@ -79,12 +79,13 @@ function getQueryBySlot(slotVal) {
 /**
  * Gets the information via slot value 'Term'
  */
-function getDataViaSlotVal(intent, session, callback) {
+function getDataViaSlotVal(request, session, callback) {
+    const intent = request.intent;
     const cardTitle = intent.name;
     const slot = intent.slots['Term'];
     alexaLogger.logInfo(`Term ${slot.value} requested`);
-    const query = getQueryBySlot(slot.name);
-    let repromptText = '';
+    const query = getQueryBySlot(slot.value);
+    let repromptText = messages.continueMessage;
     let sessionAttributes = {};
     const shouldEndSession = false;
     dynamodb.getItem(query, (err, data) => {
@@ -92,9 +93,11 @@ function getDataViaSlotVal(intent, session, callback) {
         if (err) {
             alexaLogger.logError(`Error in getting data from dynamodb: ${err}`);
             speechOutput = 'We\'re sorry, there was some issue in getting response. Please try again.'
-        } else {
+        } else if (data.Item && data.Item.answer['S']) {
             speechOutput = data.Item.answer['S'];
             alexaLogger.logInfo(`Recieved data from table for sessionId=${session.sessionId}: ${speechOutput}`);
+        } else {
+            speechOutput = `${messages.noDataFound} for ${slot.value}`;
         }
         callback(sessionAttributes,
             helpers.buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));

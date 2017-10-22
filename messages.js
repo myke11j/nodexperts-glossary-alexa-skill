@@ -7,6 +7,7 @@ module.exports = {
     'continueMessage': 'Do you want to continue?',
     'goodByeMessgae': 'Goodbye.',
     'invalidIntent': 'We\'re sorry, we are not able to response for your request.',
+    'noDataFound': 'We\'re sorry, we don\'t have information in our records for ',
     'helpMessage': 'NodeXperts Glossary is an skill where you can ask any ' +
                    'javascript related term like closure, Promises or frameworks like react, Vue ' +
                    'and this skill will fetch description for you.'
