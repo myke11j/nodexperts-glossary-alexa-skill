@@ -38,7 +38,7 @@ function startOver(callback) {
 }
 
 function handleSessionEndRequest(callback) {
-    const cardTitle = 'Session Ended';
+    const cardTitle = 'Exit NodeXperts Javascript Glossary';
     const speechOutput = messages.goodByeMessgae;
     // Setting this to true ends the session and exits the skill.
     const shouldEndSession = true;
@@ -47,7 +47,7 @@ function handleSessionEndRequest(callback) {
 }
 
 function handleSessionHelpRequest(callback) {
-    const cardTitle = 'Help Intent';
+    const cardTitle = 'Exit NodeXperts Javascript Glossary';
     const speechOutput = messages.helpMessage;
     // Setting this to true ends the session and exits the skill.
     const shouldEndSession = false;
@@ -56,10 +56,10 @@ function handleSessionHelpRequest(callback) {
 }
 
 function handleInvalidIntentRequest(callback) {
-    const cardTitle = 'Invalid intent';
+    const cardTitle = 'Unexpected error occured';
     const speechOutput = messages.invalidIntent;
     // Setting this to true ends the session and exits the skill.
-    const shouldEndSession = false;
+    const shouldEndSession = true;
 
     callback({}, helpers.buildSpeechletResponse(cardTitle, speechOutput, null, shouldEndSession));
 }
@@ -81,13 +81,12 @@ function getQueryBySlot(slotVal) {
  */
 function getDataViaSlotVal(request, session, callback) {
     const intent = request.intent;
-    const cardTitle = intent.name;
     const slot = intent.slots['Term'];
+    const cardTitle = `Javascript Glossary - ${slot.value}`;
     alexaLogger.logInfo(`Term ${slot.value} requested`);
     const query = getQueryBySlot(slot.value);
-    let repromptText = messages.continueMessage;
     let sessionAttributes = {};
-    const shouldEndSession = false;
+    const shouldEndSession = true;
     dynamodb.getItem(query, (err, data) => {
         let speechOutput;
         if (err) {
@@ -100,7 +99,7 @@ function getDataViaSlotVal(request, session, callback) {
             speechOutput = `${messages.noDataFound} for ${slot.value}`;
         }
         callback(sessionAttributes,
-            helpers.buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+            helpers.buildSpeechletResponse(cardTitle, speechOutput, null, shouldEndSession));
     });
 }
 
@@ -119,7 +118,6 @@ function onSessionStarted(sessionStartedRequest, session) {
  */
 function onLaunch(launchRequest, session, callback) {
     alexaLogger.logInfo(`onLaunch requestId=${launchRequest.requestId}, sessionId=${session.sessionId}`);
-
     // Dispatch to your skill's launch.
     getWelcomeResponse(callback);
 }

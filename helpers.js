@@ -10,8 +10,8 @@ helpers.buildSpeechletResponse = (title, output, repromptText, shouldEndSession)
         },
         card: {
             type: 'Simple',
-            title: `SessionSpeechlet - ${title}`,
-            content: `SessionSpeechlet - ${output}`,
+            title: title,
+            content: output,
         },
         reprompt: {
             outputSpeech: {
