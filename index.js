@@ -7,6 +7,8 @@ const messages = require('./messages');
 const alexaLogger = require('./logger');
 const dynamodb = new AWS.DynamoDB();
 
+let needsDoubleChecking = false; // for terms like closure/s, map/s
+
 // --------------- Functions that control the skill's behavior -----------------------
 
 function getWelcomeResponse(callback) {
@@ -47,7 +49,7 @@ function handleSessionEndRequest(callback) {
 }
 
 function handleSessionHelpRequest(callback) {
-    const cardTitle = 'Exit NodeXperts Javascript Glossary';
+    const cardTitle = 'NodeXperts Javascript Glossary Help';
     const speechOutput = messages.helpMessage;
     // Setting this to true ends the session and exits the skill.
     const shouldEndSession = false;
@@ -76,31 +78,54 @@ function getQueryBySlot(slotVal) {
     return params;
 }
 
+function queryDynamoDb(value, resolve2 = null) {
+    return new Promise((resolve, reject) => {
+        if (resolve2) resolve = resolve2;
+        alexaLogger.logInfo(`Querying dynamodb for ${value}`);
+        const query = getQueryBySlot(value);
+        dynamodb.getItem(query, (err, data) => {
+            if (err) {
+                return reject(err);
+            } else if (data.Item && data.Item.answer['S']) {
+                alexaLogger.logInfo(`Recieved data from table ${data.Item.answer['S']}`);
+                return resolve(data.Item.answer['S']);
+            } else {
+                if (needsDoubleChecking) {
+                    needsDoubleChecking = false;
+                    alexaLogger.logWarn(`Will be doing a double check for ${value}`);
+                    queryDynamoDb(value.substring(0, value.length - 1), resolve);
+                } else {
+                    return resolve(`${messages.noDataFound} for ${value}`);
+                }
+            }
+        });
+    });
+}
+
 /**
  * Gets the information via slot value 'Term'
  */
 function getDataViaSlotVal(request, session, callback) {
     const intent = request.intent;
     const slot = intent.slots['Term'];
-    const cardTitle = `Javascript Glossary - ${slot.value}`;
-    alexaLogger.logInfo(`Term ${slot.value} requested`);
-    const query = getQueryBySlot(slot.value);
+    const value = slot.value;
+    if (value.charAt(value.length - 1) === 's') needsDoubleChecking = true;
+    const cardTitle = `Javascript Glossary - ${value}`;
     let sessionAttributes = {};
+    let speechOutput;
     const shouldEndSession = true;
-    dynamodb.getItem(query, (err, data) => {
-        let speechOutput;
-        if (err) {
+    queryDynamoDb(value)
+        .then((res) => {
+            speechOutput = res;
+            return callback(sessionAttributes,
+                helpers.buildSpeechletResponse(cardTitle, speechOutput, null, shouldEndSession));
+        })
+        .catch((err) => {
             alexaLogger.logError(`Error in getting data from dynamodb: ${err}`);
-            speechOutput = 'We\'re sorry, there was some issue in getting response. Please try again.'
-        } else if (data.Item && data.Item.answer['S']) {
-            speechOutput = data.Item.answer['S'];
-            alexaLogger.logInfo(`Recieved data from table for sessionId=${session.sessionId}: ${speechOutput}`);
-        } else {
-            speechOutput = `${messages.noDataFound} for ${slot.value}`;
-        }
-        callback(sessionAttributes,
-            helpers.buildSpeechletResponse(cardTitle, speechOutput, null, shouldEndSession));
-    });
+            speechOutput = 'We\'re sorry, there was some issue in getting response. Please try again.';
+            return callback(sessionAttributes,
+                helpers.buildSpeechletResponse(cardTitle, speechOutput, null, shouldEndSession));
+        });
 }
 
 
